@@ -60,7 +60,6 @@ class InceptionLSTM(nn.Module):
         return out
 
 
-import torchsummary
 
 model = InceptionLSTM(input_size=(64,32))
 # torchsummary.summary(model, (1, 128, 64))
