@@ -52,7 +52,7 @@ class InceptionLSTM(nn.Module):
         tate, yoko = input_size
         self.inception = Inception(in_channels)
         self.lstm1 = nn.LSTM(256*(tate//(2**3))*(yoko//(2**3)), 128)
-        self.lstm2 = nn.LSTM(128, 26)
+        self.lstm2 = nn.LSTM(128, 46)
         self.batch = batch
 
     def forward(self, x):

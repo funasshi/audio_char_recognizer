@@ -37,7 +37,7 @@ def remove_start_end(sound_arr, frame_rate, start_cut_time=1, length=20):
 
 def plot_hiragana_audio(hiragana):
     # 入力:表示したいひらがな(str)
-    # 出力:10個の波形
+    # 出力:10個に分けた波形(numpy行列)
     file_name = "easily_splittable_hiragana_data/" + hiragana + "1.m4a"
     sound_arr, frame_rate = get_audio_numpy(file_name)
     sound_arrs = audio_split(sound_arr, frame_rate)
@@ -48,8 +48,8 @@ def plot_hiragana_audio(hiragana):
 
 
 def make_dataset():
-    # 入力:表示したいひらがな(str)
-    # 出力:10個の波形
+    # Xはすべての音声データのnumpy行列、一文字ずつ
+    # yはそれに対応するラベル (あ=0,い=1,う=2...)
     hiraganas = list("あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん")
     X = None
     labels = []
@@ -65,8 +65,3 @@ def make_dataset():
             else:
                 X = np.concatenate([X, sound_arrs])
     return X, labels
-
-
-X, labels = make_dataset()
-
-print(X)
