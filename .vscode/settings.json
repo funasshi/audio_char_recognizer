@@ -1,0 +1,6 @@
+{
+    "python.pythonPath": "/Users/atsuyoshifunahashi/.local/share/virtualenvs/audio_char_recognizer-skfp9p5k/bin/python",
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": true,
+    "python.linting.enabled": true
+}

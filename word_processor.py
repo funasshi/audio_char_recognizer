@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pydub import AudioSegment
 import os
-import scipy.io
 
 
 def get_audio_numpy(file_name):
@@ -12,7 +11,8 @@ def get_audio_numpy(file_name):
     sound_arr = clipping(sound_arr)
     sound_arr = sub_sampling(sound_arr)
     frame_rate = sound.frame_rate / 10
-    x = np.arange(start=0, stop=sound_arr.shape[0] / frame_rate, step=1 / frame_rate)
+    x = np.arange(
+        start=0, stop=sound_arr.shape[0] / frame_rate, step=1 / frame_rate)
     return sound_arr, x
 
 
@@ -51,7 +51,9 @@ def average_power(sound_arr, window_size, type, fr=4800, alpha=0.1):
     Pt = average_array(first_frame, type, average)
     average_noise_power_list += [Pt] * int(strides * fr)
     for i in range(int(strides * fr), sound_arr.shape[0], int(strides * fr)):
-        Pt = (1 - alpha) * Pt + alpha * average_array(abs_sound_arr[i:int(i + window_size * fr)], type, average)
+        Pt = (1 - alpha) * Pt + alpha * \
+            average_array(
+                abs_sound_arr[i:int(i + window_size * fr)], type, average)
         average_noise_power_list += [Pt] * int(strides * fr)
     return np.array(average_noise_power_list[:sound_arr.shape[0]])
 
@@ -75,7 +77,8 @@ def get_peak(sound_arr, gamma=1.3, ):
 
 folder_name = "hiragana_audio_folder"
 hiragana = "そ"
-sound_arr, x = get_audio_numpy(os.path.join(folder_name, hiragana + "-舟橋①.m4a"))
+sound_arr, x = get_audio_numpy(
+    os.path.join(folder_name, hiragana + "-舟橋①.m4a"))
 
 file_name = os.path.join(folder_name, hiragana + "-舟橋①.m4a")
 sound = AudioSegment.from_file(file_name, "m4a")
