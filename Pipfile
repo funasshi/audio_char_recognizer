@@ -10,6 +10,13 @@ pydub = "*"
 scipy = "*"
 matplotlib = "*"
 ffmpeg = "*"
+torchsummary = "*"
+flake8 = "*"
+ffprobe = "*"
+scikit-learn = "*"
+librosa = "*"
+torchvision = "*"
+ipykernel = "*"
 
 [dev-packages]
 flake8 = "*"
