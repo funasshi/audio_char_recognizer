@@ -14,27 +14,17 @@ import matplotlib.pyplot as plt
 import torchvision
 from word_processor3 import make_dataset, preprocess
 
-# # mnist,cifar10でちゃんとできるか試してみる
-# trainset = torchvision.datasets.CIFAR10(
-#     root="./data", train=True, download=True)
-# # 60000 samples
-# X_train, y_train = trainset.data[:2000].reshape(
-#     -1, 32*32*3), trainset.targets[:2000]
-# # 10000 samples
-# X_test, y_test = trainset.data[2000:2200].reshape(
-#     -1, 32*32*3), trainset.targets[2000:2200]
-
 # GPU,CPUの指定
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # batch数
-batch = 16
+batch = 32
 
 # epoch数
-epochs = 1000
+epochs = 100
 
 # モデル
-model = InceptionLSTM(batch=batch, out_channels=3).to(device)
+model = InceptionLSTM(batch=batch, out_channels=128).to(device)
 
 # 最適化アルゴリズム
 optimizer = optim.Adam(params=model.parameters(), lr=0.0005)
@@ -50,7 +40,7 @@ X, y, _ = make_dataset()
 
 # trainとtestに分ける(クラスごとの比率は一定)
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, random_state=42, test_size=0.1, stratify=y, shuffle=True)
+    X, y, random_state=42, test_size=0.2, stratify=y, shuffle=True)
 
 # 前処理
 # 0.clipping

@@ -59,7 +59,7 @@ def make_dataset():
     X = None
     labels = []
     for label, hiragana in enumerate(hiraganas):
-        for i in range(2):
+        for i in range(4):
             file_name = "easily_splittable_hiragana_data/" + \
                 hiragana + str(i+1)+".m4a"
             sound_arr, frame_rate = get_audio_numpy(file_name)
@@ -72,6 +72,20 @@ def make_dataset():
                     X = sound_arrs
                 else:
                     X = np.concatenate([X, sound_arrs])
+        for i in range(2):
+            file_name = "easily_splittable_hiragana_data/" + \
+                hiragana + "1"+str(i+1)+".m4a"
+            sound_arr, frame_rate = get_audio_numpy(file_name)
+            if frame_rate == 4410:
+                print(hiragana, i)
+            else:
+                sound_arrs = audio_split(sound_arr, frame_rate)
+                labels += [label]*sound_arrs.shape[0]
+                if X is None:
+                    X = sound_arrs
+                else:
+                    X = np.concatenate([X, sound_arrs])
+
     return X, labels, frame_rate
 
 

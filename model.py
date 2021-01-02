@@ -81,15 +81,25 @@ class Inception(nn.Module):
         )
 
         self.layer2 = Resblock(out_channels)
-
         self.layer3 = Resblock(out_channels)
         self.layer4 = Resblock(out_channels)
+        self.layer5 = Resblock(out_channels)
+        self.layer6 = Resblock(out_channels)
+        self.layer7 = Resblock(out_channels)
+        self.layer8 = Resblock(out_channels)
+        self.layer9 = Resblock(out_channels)
 
     def forward(self, x):
         out = self.layer1(x)
         out = self.layer2(out)
-        # out = self.layer3(out)
-        # out = self.layer4(out)
+        out = self.layer3(out)
+        out = self.layer4(out)
+        out = self.layer5(out)
+        out = self.layer6(out)
+        out = self.layer7(out)
+        out = self.layer8(out)
+        out = self.layer9(out)
+
         return out
 
 
@@ -104,11 +114,11 @@ class InceptionLSTM(nn.Module):
         self.last_conv = nn.Conv1d(out_channels, 46, kernel_size=3, padding=1)
         self.batch = batch
         self.out_channels = out_channels
-        self.linear_mnist = nn.Linear(9600, 200*47)
+        self.linear = nn.Linear(9600, 200*47)
 
     def forward(self, x):
-        x = self.linear_mnist(x)
-        x = nn.Dropout(0.5)(x)
+        x = self.linear(x)
+        # x = nn.Dropout(0.5)(x)
         x = x.reshape(-1, 200, 47)
         out = self.inception(x)
         # out = out.permute(1, 0, 2)
@@ -116,7 +126,7 @@ class InceptionLSTM(nn.Module):
         # out, _ = self.lstm2(out)
         # out = out.permute(1, 0, 2).reshape(-1, 64*46)
         out = self.last_conv(out)
-        out = nn.Dropout(0.5)(out)
+        # out = nn.Dropout(0.5)(out)
         out = nn.functional.avg_pool1d(out, kernel_size=out.size()[2])
         out = out.reshape(-1, 46)
         out = nn.Softmax(1)(out)
