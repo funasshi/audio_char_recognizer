@@ -112,8 +112,8 @@ def test_accuracy():
     # 正解率を出力
     data_num = y_test.shape[0]  # データの総数
     accuracy = 100. * correct / data_num
-    print('訓練データの正解率: {}/{} ({:.0f}%)\n'.format(correct,
-                                                data_num, accuracy))
+    print('テストデータの正解率: {}/{} ({:.0f}%)\n'.format(correct,
+                                                 data_num, accuracy))
     return accuracy
 
 # %%
