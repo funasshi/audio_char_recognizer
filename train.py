@@ -8,7 +8,7 @@ from model import InceptionLSTM
 import torch.optim as optim
 from data_loader import audio_data_loader
 from get_stpsd import get_stpsd
-from create_graph import create_graph
+from create_graph import create_loss_graph, create_acc_graph
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import torchvision
@@ -31,10 +31,10 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 batch = 16
 
 # epoch数
-epochs = 50
+epochs = 1000
 
 # モデル
-model = InceptionLSTM(batch=batch, out_channels=64).to(device)
+model = InceptionLSTM(batch=batch, out_channels=3).to(device)
 
 # 最適化アルゴリズム
 optimizer = optim.Adam(params=model.parameters(), lr=0.0005)
@@ -73,7 +73,7 @@ y_test = y_test.to(device)
 def train(epoch):
     model.train()  # modelを訓練可能に(accracyを出すところで勾配を切るため)
     train_data_loader = audio_data_loader(
-        X_train, y_train, batch, shuffle=True, stpsd=False, aug_noise=True, aug_shift=False)  # data_loaderを定義
+        X_train, y_train, batch, shuffle=True, stpsd=False, aug_noise=False, aug_shift=False)  # data_loaderを定義
 
     # データローダーから1ミニバッチずつ取り出して計算する
     for data, target in train_data_loader:
@@ -83,9 +83,9 @@ def train(epoch):
         loss.backward()  # 誤差のバックプロパゲーションを求める
         optimizer.step()  # バックプロパゲーションの値で重みを更新する
     print("epoch%s:終了   loss=%s" % (epoch, loss.item()))
-    train_accuracy()
-    test_accuracy()
-    return loss.item()
+    train_acc = train_accuracy()
+    test_acc = test_accuracy()
+    return loss.item(), train_acc, test_acc
 
 # 訓練データのaccuracyを求める関数
 
@@ -100,12 +100,12 @@ def train_accuracy():
     # 推論する
     pred = output.data.max(1, keepdim=True)[1]  # 出力ラベルを求める
     correct += pred.eq(y_train.data.view_as(pred)).sum()  # 正解と一緒だったらカウントアップ
-
     # 正解率を出力
     data_num = y_train.shape[0]  # データの総数
+    accuracy = 100. * correct / data_num
     print('訓練データの正解率: {}/{} ({:.0f}%)\n'.format(correct,
-                                                data_num, 100. * correct / data_num))
-
+                                                data_num, accuracy))
+    return accuracy
 # テストデータのaccuracyを求める関数
 
 
@@ -121,16 +121,25 @@ def test_accuracy():
 
     # 正解率を出力
     data_num = y_test.shape[0]  # データの総数
-    print('テストデータの正解率: {}/{} ({:.0f}%)\n'.format(correct,
-                                                 data_num, 100. * correct / data_num))
-
+    accuracy = 100. * correct / data_num
+    print('訓練データの正解率: {}/{} ({:.0f}%)\n'.format(correct,
+                                                data_num, accuracy))
+    return accuracy
 
 # %%
 
+
 # 訓練開始
 loss_list = []
+train_acc_list = []
+test_acc_list = []
 for epoch in range(epochs):
-    loss_list.append(train(epoch))
+    loss, train_acc, test_acc = train(epoch)
+    loss_list.append(loss)
+    train_acc_list.append(train_acc)
+    test_acc_list.append(test_acc)
+
 
 # loss関数のグラフ作成
-create_graph(loss_list, epochs)
+create_loss_graph(loss_list, epochs)
+create_acc_graph(train_acc_list, test_acc_list, epochs)

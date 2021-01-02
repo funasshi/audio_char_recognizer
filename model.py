@@ -58,7 +58,7 @@ class Resblock(nn.Module):
             nn.Conv1d(in_channels=in_channels, out_channels=in_channels,
                       kernel_size=3, padding=1),
             nn.BatchNorm1d(in_channels),
-            nn.Dropout(0.5),
+            # nn.Dropout(0.5),
 
         )
 
@@ -108,6 +108,7 @@ class InceptionLSTM(nn.Module):
 
     def forward(self, x):
         x = self.linear_mnist(x)
+        x = nn.Dropout(0.5)(x)
         x = x.reshape(-1, 200, 47)
         out = self.inception(x)
         # out = out.permute(1, 0, 2)
@@ -115,9 +116,9 @@ class InceptionLSTM(nn.Module):
         # out, _ = self.lstm2(out)
         # out = out.permute(1, 0, 2).reshape(-1, 64*46)
         out = self.last_conv(out)
-        out = nn.functional.max_pool1d(out, kernel_size=out.size()[2])
+        out = nn.Dropout(0.5)(out)
+        out = nn.functional.avg_pool1d(out, kernel_size=out.size()[2])
         out = out.reshape(-1, 46)
-        # out = self.linear(out)
         out = nn.Softmax(1)(out)
         return out
 

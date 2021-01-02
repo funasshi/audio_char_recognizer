@@ -63,18 +63,26 @@ def make_dataset():
             file_name = "easily_splittable_hiragana_data/" + \
                 hiragana + str(i+1)+".m4a"
             sound_arr, frame_rate = get_audio_numpy(file_name)
-            sound_arrs = audio_split(sound_arr, frame_rate)
-            labels += [label]*sound_arrs.shape[0]
-            if X is None:
-                X = sound_arrs
+            if frame_rate == 4410:
+                print(hiragana, i)
             else:
-                X = np.concatenate([X, sound_arrs])
+                sound_arrs = audio_split(sound_arr, frame_rate)
+                labels += [label]*sound_arrs.shape[0]
+                if X is None:
+                    X = sound_arrs
+                else:
+                    X = np.concatenate([X, sound_arrs])
     return X, labels, frame_rate
 
 
 def preprocess(X_train, X_test, y_train, y_test):
+    X_train = (X_train - np.mean(X_train, axis=1).reshape(-1, 1)) / \
+        np.std(X_train, axis=1).reshape(-1, 1)
+    X_test = (X_test - np.mean(X_test, axis=1).reshape(-1, 1)) / \
+        np.std(X_test, axis=1).reshape(-1, 1)
     X_train = (X_train - np.mean(X_train)) / np.std(X_train)
     X_test = (X_test - np.mean(X_train)) / np.std(X_train)
+
     X_train = torch.Tensor(X_train).float()
     X_test = torch.Tensor(X_test).float()
     y_train = torch.Tensor(y_train).long()
