@@ -52,14 +52,14 @@ def plot_hiragana_audio(hiragana):
     plt.show()
 
 
-def make_dataset():
+def make_dataset(spectro=False):
     # 入力:表示したいひらがな(str)
     # 出力:10個の波形
     hiraganas = list("あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん")
     X = None
     labels = []
     for label, hiragana in enumerate(hiraganas):
-        for i in range(4):
+        for i in range(2):
             file_name = "easily_splittable_hiragana_data/" + \
                 hiragana + str(i+1)+".m4a"
             sound_arr, frame_rate = get_audio_numpy(file_name)
@@ -72,24 +72,28 @@ def make_dataset():
                     X = sound_arrs
                 else:
                     X = np.concatenate([X, sound_arrs])
-        for i in range(2):
-            file_name = "easily_splittable_hiragana_data/" + \
-                hiragana + "1"+str(i+1)+".m4a"
-            sound_arr, frame_rate = get_audio_numpy(file_name)
-            if frame_rate == 4410:
-                print(hiragana, i)
-            else:
-                sound_arrs = audio_split(sound_arr, frame_rate)
-                labels += [label]*sound_arrs.shape[0]
-                if X is None:
-                    X = sound_arrs
-                else:
-                    X = np.concatenate([X, sound_arrs])
+        # for i in range(2):
+        #     file_name = "easily_splittable_hiragana_data/" + \
+        #         hiragana + "1"+str(i+1)+".m4a"
+        #     sound_arr, frame_rate = get_audio_numpy(file_name)
+        #     if frame_rate == 4410:
+        #         print(hiragana, i)
+        #     else:
+        #         sound_arrs = audio_split(sound_arr, frame_rate)
+        #         labels += [label]*sound_arrs.shape[0]
+        #         if X is None:
+        #             X = sound_arrs
+        #         else:
+        #             X = np.concatenate([X, sound_arrs])
 
     return X, labels, frame_rate
 
 
 def preprocess(X_train, X_test, y_train, y_test):
+    # 高域協調
+    # X_train[:, 1:] = X_train[:, 1:] - 0.97 * X_train[:, :-1]
+    # X_test[:, 1:] = X_test[:, 1:] - 0.97 * X_test[:, :-1]
+
     X_train = (X_train - np.mean(X_train, axis=1).reshape(-1, 1)) / \
         np.std(X_train, axis=1).reshape(-1, 1)
     X_test = (X_test - np.mean(X_test, axis=1).reshape(-1, 1)) / \

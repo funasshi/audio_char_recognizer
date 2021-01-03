@@ -13,18 +13,19 @@ from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import torchvision
 from word_processor3 import make_dataset, preprocess
+from spectrogram import audio_to_spectrogram
 
 # GPU,CPUの指定
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # batch数
-batch = 32
+batch = 8
 
 # epoch数
 epochs = 100
 
 # モデル
-model = InceptionLSTM(batch=batch, out_channels=128).to(device)
+model = InceptionLSTM(batch=batch, out_channels=64).to(device)
 
 # 最適化アルゴリズム
 optimizer = optim.Adam(params=model.parameters(), lr=0.0005)
@@ -63,7 +64,7 @@ y_test = y_test.to(device)
 def train(epoch):
     model.train()  # modelを訓練可能に(accracyを出すところで勾配を切るため)
     train_data_loader = audio_data_loader(
-        X_train, y_train, batch, shuffle=True, stpsd=False, aug_noise=False, aug_shift=False)  # data_loaderを定義
+        X_train, y_train, batch, shuffle=True, spectro=True, aug_noise=False, aug_shift=False)  # data_loaderを定義
 
     # データローダーから1ミニバッチずつ取り出して計算する
     for data, target in train_data_loader:
@@ -103,7 +104,8 @@ def test_accuracy():
     model.eval()  # ネットワークを推論モードに切り替える
     correct = 0
 
-    output = model(X_test)  # 入力dataをinputし、出力を求める
+    spec_X_test = np.frompyfunc(audio_to_spectrogram, 1, 1)(X_test)
+    output = model(spec_X_test)  # 入力dataをinputし、出力を求める
 
     # 推論する
     pred = output.data.max(1, keepdim=True)[1]  # 出力ラベルを求める

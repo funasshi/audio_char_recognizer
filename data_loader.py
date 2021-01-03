@@ -2,13 +2,14 @@ from torch.utils.data import DataLoader
 import numpy as np
 from data_augmentation import data_augmentation
 from audio_preprocess import audio_to_psd
+from spectrogram import audio_to_spectrogram
 
 
 class Dataset:
-    def __init__(self, X, y, stpsd, aug_noise, aug_shift):
+    def __init__(self, X, y, spectro, aug_noise, aug_shift):
         self.X = X
         self.y = y
-        self.stpsd = stpsd
+        self.spectro = spectro
         self.aug_noise = aug_noise
         self.aug_shift = aug_shift
 
@@ -20,13 +21,13 @@ class Dataset:
         x = self.X[index]
         y = self.y[index]
         x = data_augmentation(x, self.aug_noise, self.aug_shift)
-        if self.stpsd:
-            x = audio_to_psd(x, 4800, T=None, time_overlap=0.0)
+        if self.spectro:
+            x = audio_to_spectrogram(x, 4800)
         return x, y
 
 
-def audio_data_loader(X, y, batch_size, shuffle=True, stpsd=False, aug_noise=False, aug_shift=False):
-    dataset = Dataset(X, y, stpsd, aug_noise, aug_shift)
+def audio_data_loader(X, y, batch_size, shuffle=True, spectro=False, aug_noise=False, aug_shift=False):
+    dataset = Dataset(X, y, spectro, aug_noise, aug_shift)
     dataloader = DataLoader(dataset, batch_size=batch_size,
                             shuffle=shuffle, drop_last=True)
     return dataloader

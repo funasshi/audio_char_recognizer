@@ -54,18 +54,18 @@ class Resblock(nn.Module):
                       kernel_size=3, padding=1),
             nn.BatchNorm1d(in_channels),
             nn.ReLU(),
-            nn.Dropout(0.5),
+            nn.Dropout(0.25),
             nn.Conv1d(in_channels=in_channels, out_channels=in_channels,
                       kernel_size=3, padding=1),
             nn.BatchNorm1d(in_channels),
-            # nn.Dropout(0.5),
-
         )
+        self.dropout2 = nn.Dropout(0.5)
 
     def forward(self, x):
         out = self.layer1(x)
         out = torch.add(out, x)
         out = nn.ReLU()(out)
+        # out = self.dropout2(out)
         return out
 
 
@@ -74,7 +74,7 @@ class Inception(nn.Module):
         super(Inception, self).__init__()
         self.layer1 = nn.Sequential(
             nn.Conv1d(in_channels=in_channels, out_channels=out_channels,
-                      kernel_size=3, padding=1),
+                      kernel_size=7, padding=3),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=3, stride=2, padding=1),
             nn.BatchNorm1d(out_channels),
@@ -93,19 +93,19 @@ class Inception(nn.Module):
         out = self.layer1(x)
         out = self.layer2(out)
         out = self.layer3(out)
-        out = self.layer4(out)
-        out = self.layer5(out)
-        out = self.layer6(out)
-        out = self.layer7(out)
-        out = self.layer8(out)
-        out = self.layer9(out)
+        # out = self.layer4(out)
+        # out = self.layer5(out)
+        # out = self.layer6(out)
+        # out = self.layer7(out)
+        # out = self.layer8(out)
+        # out = self.layer9(out)
 
         return out
 
 
 class InceptionLSTM(nn.Module):
 
-    def __init__(self, in_channels=200, batch=128, input_size=24, out_channels=3):
+    def __init__(self, in_channels=199, batch=128, input_size=24, out_channels=3):
         super(InceptionLSTM, self).__init__()
         self.inception = Inception(in_channels, out_channels=out_channels)
         # self.lstm1 = nn.LSTM(input_size, 46)
@@ -114,12 +114,12 @@ class InceptionLSTM(nn.Module):
         self.last_conv = nn.Conv1d(out_channels, 46, kernel_size=3, padding=1)
         self.batch = batch
         self.out_channels = out_channels
-        self.linear = nn.Linear(9600, 200*47)
+        # self.linear = nn.Linear(9600, 199*9600)
 
     def forward(self, x):
-        x = self.linear(x)
+        # x = self.linear(x)
         # x = nn.Dropout(0.5)(x)
-        x = x.reshape(-1, 200, 47)
+        # x = x.reshape(-1, 200, 47)
         out = self.inception(x)
         # out = out.permute(1, 0, 2)
         # out, _ = self.lstm1(out)
