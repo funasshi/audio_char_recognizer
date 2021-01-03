@@ -18,13 +18,13 @@ from word_processor3 import make_dataset, preprocess
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # batch数
-batch = 32
+batch = 8
 
 # epoch数
 epochs = 100
 
 # モデル
-model = InceptionLSTM(batch=batch, out_channels=128).to(device)
+model = InceptionLSTM(batch=batch, out_channels=64).to(device)
 
 # 最適化アルゴリズム
 optimizer = optim.Adam(params=model.parameters(), lr=0.0005)
@@ -75,6 +75,8 @@ def train(epoch):
     print("epoch%s:終了   loss=%s" % (epoch, loss.item()))
     train_acc = train_accuracy()
     test_acc = test_accuracy()
+    train_accuracy_topk(k=5)
+    test_accuracy_topk(k=5)
     return loss.item(), train_acc, test_acc
 
 # 訓練データのaccuracyを求める関数
@@ -96,6 +98,34 @@ def train_accuracy():
     print('訓練データの正解率: {}/{} ({:.0f}%)\n'.format(correct,
                                                 data_num, accuracy))
     return accuracy
+
+# 参考: https://zenn.dev/nnabeyang/articles/8b643ca99ddab2a568e0
+# 訓練データのtop-kに入っているかどうかのaccuracyを求める関数
+def train_accuracy_topk(k=5):
+    model.eval()  # ネットワークを推論モードに切り替える
+    N = X_train.size(0)
+    # データローダーから1ミニバッチずつ取り出して計算する
+    output = model(X_train)  # 入力dataをinputし、出力を求める
+    assert N == output.size(0)
+    assert output.dim() == 2
+    # 推論する
+    # topkは上位k個のlabel
+    _, topk_pred = output.topk(k, dim=1, largest=True, sorted=True)
+    # expandするためにunsqueeze
+    y_train_unsq = torch.unsqueeze(y_train, dim=1)
+    # expand
+    target = y_train_unsq.expand_as(topk_pred)
+    # expandの確認
+    assert (target[:, 0].eq(target[:, 1])).sum().item() == N
+    topk_correct = topk_pred.eq(target).sum().item() # 正解と一緒だったらカウントアップ
+    # 正解率を出力
+    topk_accuracy = 100. * topk_correct / N
+    print('訓練データの正解率(top-{}): {}/{} ({:.0f}%)\n'.format(k, topk_correct,
+                                                N, topk_accuracy))
+    return topk_accuracy
+
+
+
 # テストデータのaccuracyを求める関数
 
 
@@ -116,6 +146,32 @@ def test_accuracy():
                                                  data_num, accuracy))
     return accuracy
 
+# 上位k個
+def test_accuracy_topk(k=5):
+    model.eval()  # ネットワークを推論モードに切り替える
+    N = X_test.size(0)
+
+    output = model(X_test)  # 入力dataをinputし、出力を求める
+    assert output.dim() == 2
+    assert N == output.size(0)
+
+    # topkは上位k個のlabel
+    _, topk_pred = output.topk(k, dim=1, largest=True, sorted=True)
+    # expandするためにunsqueeze
+    y_test_unsq = torch.unsqueeze(y_test, dim=1)
+    # expand
+    target = y_test_unsq.expand_as(topk_pred)
+    # expandの確認
+    assert (target[:, 0].eq(target[:, 1])).sum().item() == N
+    topk_correct = topk_pred.eq(target).sum().item() # 正解と一緒だったらカウントアップ
+    # 正解率を出力
+    topk_accuracy = 100. * topk_correct / N
+    
+    print('テストデータの正解率(top-{}): {}/{} ({:.0f}%)\n'.format(k, topk_correct,
+                                                N, topk_accuracy))
+    return topk_accuracy
+
+
 # %%
 
 
@@ -133,3 +189,5 @@ for epoch in range(epochs):
 # loss関数のグラフ作成
 create_loss_graph(loss_list, epochs)
 create_acc_graph(train_acc_list, test_acc_list, epochs)
+
+print(y_train.size())
