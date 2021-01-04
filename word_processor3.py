@@ -77,7 +77,7 @@ def make_dataset(sub=False):
                     X = sound_arrs
                 else:
                     X = np.concatenate([X, sound_arrs])
-        for i in range(2):
+        for i in range(4):
             file_name = "easily_splittable_hiragana_data/" + \
                 hiragana + "1" + str(i + 1) + ".m4a"
             sound_arr, frame_rate = get_audio_numpy(file_name, sub=sub)

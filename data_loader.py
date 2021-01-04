@@ -4,6 +4,7 @@ from data_augmentation import data_augmentation
 from audio_preprocess import audio_to_psd
 from spectrogram import audio_to_spectrogram
 import torch
+import random
 
 
 class Dataset:
@@ -22,7 +23,8 @@ class Dataset:
         # index番目の入出力ペアを返す
         x = self.X[index]
         y = self.y[index]
-        x = data_augmentation(x, self.aug_noise, self.aug_shift)
+        if random.random() >= 0.5:
+            x = data_augmentation(x, self.aug_noise, self.aug_shift)
         if self.feature == "spectro":
             x = x.cpu()
             x = torch.Tensor(audio_to_spectrogram(x, self.fr))

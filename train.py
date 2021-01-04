@@ -4,7 +4,7 @@ import torch
 import torchsummary
 
 from torch import nn
-from model import InceptionLSTM
+from model import InceptionLSTM, InceptionLSTM2d
 import torch.optim as optim
 from data_loader import audio_data_loader
 from get_stpsd import get_stpsd
@@ -22,13 +22,25 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 batch = 32
 
 # epoch数
-epochs = 300
+epochs = 200
 
 # モデル
 model = InceptionLSTM(batch=batch, out_channels=64).to(device)
 
 # 最適化アルゴリズム
 optimizer = optim.Adam(params=model.parameters(), lr=0.0005)
+
+# スケジューラ
+
+
+def schedule_func(epoch):
+    middle = epochs // 2
+    if epoch < middle:
+        return 1
+    return (epochs - epoch) / middle
+
+
+scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=schedule_func)
 
 # 損失関数
 loss_fn = nn.CrossEntropyLoss()
@@ -72,11 +84,11 @@ y_test = y_test.to(device)
 # X_test_spec = X_test_spec.to(device)
 # %%
 train_data_loader = audio_data_loader(
-    X_train, y_train, batch, fr=fr, shuffle=False, feature="spectro", aug_noise=True, aug_shift=True)  # data_loaderを定義
+    X_train, y_train, batch, fr=fr, shuffle=False, feature="spectro", aug_noise=False, aug_shift=True)  # data_loaderを定義
 
 for data, target in train_data_loader:
     print(data.shape)
-    print(data[0])
+    print(data[0].std())
     plt.imshow(data[0].cpu().numpy())
     break
 # %%
@@ -89,8 +101,9 @@ def train(epoch):
     train_data_loader = audio_data_loader(
         X_train, y_train, batch, fr=fr, shuffle=True, feature="stpsd", aug_noise=False, aug_shift=False)  # data_loaderを定義
     acc_count = 0
+    loss_ave = 0
     # データローダーから1ミニバッチずつ取り出して計算する
-    for data, target in train_data_loader:
+    for i, (data, target) in enumerate(train_data_loader):
         optimizer.zero_grad()  # 一度計算された勾配結果を0にリセット
         output = model(data)  # 入力dataをinputし、出力を求める
         loss = loss_fn(output, target)  # 出力と訓練データの正解との誤差を求める
@@ -98,10 +111,13 @@ def train(epoch):
         optimizer.step()  # バックプロパゲーションの値で重みを更新する
         prediction = output.data.max(1)[1]
         acc_count += prediction.eq(target.data).sum()
+        loss_ave += loss.item()
     train_acc = (acc_count / X_train.shape[0]).item() * 100
     print("epoch{}:終了   loss={}   acc={}/{} ({:.0f})%".format(epoch, loss.item(), acc_count.item(), X_train.shape[0], (train_acc)))
     test_loss, test_acc, topk_accuracy = test_accuracy()
-    return loss.item(), test_loss, train_acc, test_acc, topk_accuracy
+    scheduler.step()
+    return loss_ave / (i + 1), test_loss, train_acc, test_acc, topk_accuracy
+
 
 # 訓練データのaccuracyを求める関数
 

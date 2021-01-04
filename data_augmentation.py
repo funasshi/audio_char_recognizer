@@ -3,15 +3,15 @@ import torch
 import random
 
 
-def add_white_noise(x, rate=50):
+def add_white_noise(x, rate=5):
     return x + rate * torch.randn(x.shape[0]).cuda()
 
 
 def shift_sound(x):
-    result = torch.full_like(x, x[0]).cuda()
-    start = random.randint(1000, 2000)
-    end = random.randint(93000, 94000)
-    start2 = random.randint(0, 500)
+    result = torch.full_like(x, x.mean()).cuda()
+    start = random.randint(500, 1000)
+    end = random.randint(93000, 93500)
+    start2 = random.randint(0, 1000)
     result[start2:start2 + end - start] = x[start:end]
     return result
 
