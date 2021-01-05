@@ -22,7 +22,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 batch = 32
 
 # epoch数
-epochs = 200
+epochs = 300
 
 # モデル
 model = InceptionLSTM(batch=batch, out_channels=64).to(device)
@@ -210,7 +210,7 @@ for epoch in range(epochs):
     test_acc_list.append(test_acc)
     topk_acc_list.append(topk_acc)
 
-torch.save(model.state_dict(), './params/model_para_{}epoch.pth'.format(epochs))
+torch.save(model.state_dict(), './params/model_para_lstm4_{}epoch.pth'.format(epochs))
 
 
 # loss関数のグラフ作成

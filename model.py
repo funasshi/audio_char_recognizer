@@ -189,13 +189,15 @@ class InceptionLSTM2d(nn.Module):
         self.lstm1 = nn.LSTM(input_size, input_size)
         self.lstm2 = nn.LSTM(input_size, input_size)
         self.lstm3 = nn.LSTM(input_size, input_size)
-
+        self.lstm4 = nn.LSTM(input_size, input_size)
         # self.linear = nn.Linear(out_channels*24, 46)
         self.last_conv = nn.Conv2d(out_channels, 46, kernel_size=3, padding=1)
         self.batch = batch
         self.out_channels = out_channels
         self.dropout1 = nn.Dropout(0.25)
         self.dropout2 = nn.Dropout(0.25)
+        self.dropout3 = nn.Dropout(0.25)
+
         # self.linear = nn.Linear(9600, 199*9600)
 
     def forward(self, x):
@@ -205,7 +207,8 @@ class InceptionLSTM2d(nn.Module):
         out, _ = self.lstm2(out)
         out = self.dropout2(out)
         out, _ = self.lstm3(out)
-
+        out = self.dropout3(out)
+        out, _ = self.lstm4(out)
         out = out.permute(1, 0, 2)
         # x = self.linear(x)
         # x = x.reshape(-1, 200, 47)
